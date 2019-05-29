@@ -4,6 +4,7 @@
 
 * cursor
 * numpy
+* opencv-python
 
 ## TODO's
 
