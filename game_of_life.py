@@ -21,7 +21,7 @@ class GameOfLife:
         self.width = width
         self.height = height
         self.Arena = np.random.randint(2, size=(self.height, self.width))
-        self.progress = []
+        self.progress = []  # stores only last 4 generations
         self.progress.append(self.Arena)
 
     def iterate(self):
@@ -52,15 +52,18 @@ class GameOfLife:
 
         # break loop if it doesnt change anymore
         # partly implement: checks last element vs 2 and 3 generations before
-        if len(self.progress) >= 4:
+        if len(self.progress) == 5:
             if (np.all(self.progress[-1] == self.progress[-3]) or
                     np.all(self.progress[-1] == self.progress[-4])):
                 sys.exit('stuck in recurrent loop')
+            self.progress.pop(0)
 
     def toString(self, x=-1):
         """
+        Returns matrix formatted for console output
+
         Args:
-            x:  generation to evaluate, by standard the last generation
+            x:  generation to return; standard: last generation, 4 are stored
 
         Returns:
             string representing the playing field with dead and alive cells
@@ -71,7 +74,7 @@ class GameOfLife:
                 if self.progress[x][i, j] == 0:
                     output += ' '
                 else:
-                    output += '█'  # alternatively: ▄, ▓, ░, ■
+                    output += '█'  # probable bests: █, ▄, ▓, ░, ■
             output += '\n'
         return output
 
@@ -88,9 +91,9 @@ class GameOfLife:
             os.system('cls')  # on windows
             print(self.toString())
             self.iterate()
+            print('gen:', i)
             if i != (generations - 1):
                 sleep(t / 1000)
-            print('gen:', i)
         cursor.show()
 
 
