@@ -58,7 +58,7 @@ class GameOfLife:
                 if self.A[i, j] == 0:
                     output += ' '
                 else:
-                    output += '█'
+                    output += '█'  # alternatively: ▄, ▓, ░, ■
             output += '\n'
         return output
 
@@ -68,7 +68,7 @@ class GameOfLife:
 
         Args:
             generations: how many evolutions will be simulated
-            t:           redraw frequenzy in ms
+            t:           redraw frequency in ms
         """
         cursor.hide()
         for i in range(generations):
@@ -84,4 +84,4 @@ class GameOfLife:
 
 
 test = GameOfLife(int(input('size: ')), 'void')
-test.draw(generations=(int(input('generations: '))))
+test.draw(generations=(int(input('generations: '))) + 1)
