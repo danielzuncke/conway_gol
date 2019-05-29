@@ -14,3 +14,6 @@
   * export png or video
   * import matrix from png
   * continue simulation (for n iterations)
+
+## Example gif from PNGs
+![] (gol.gif)
