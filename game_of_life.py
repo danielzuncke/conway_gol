@@ -42,6 +42,7 @@ class GameOfLife:
             generations: how many evolutions will be simulated
             t:           redraw frequenzy in ms
         """
+        cursor.hide()
         for i in range(generations):
             os.system('cls')  # on windows
             # os.system('clear')  #on linux / os x
@@ -49,6 +50,8 @@ class GameOfLife:
             self.iterate()
             if i != (generations - 1):
                 sleep(t / 1000)
+
+        cursor.show()
         ...
 
 
