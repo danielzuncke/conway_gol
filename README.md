@@ -16,4 +16,4 @@
   * continue simulation (for n iterations)
 
 ## Example gif from PNGs
-![] (gol.gif)
+![](gol.gif)
