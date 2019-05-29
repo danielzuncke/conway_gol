@@ -83,5 +83,5 @@ class GameOfLife:
         cursor.show()
 
 
-test = GameOfLife(40, 'void')
-test.draw(generations=1000)
+test = GameOfLife(int(input('size: ')), 'void')
+test.draw(generations=(int(input('generations: '))))
