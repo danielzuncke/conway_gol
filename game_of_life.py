@@ -8,7 +8,7 @@ class GameOfLife:
 
     Args:
         length:      length of dimensions
-        bordertype:  define bordertype: void, wrap or mirror
+        bordertype:  define bordertype: void, wrap
     """
 
     def __init__(self, length, bordertype):
