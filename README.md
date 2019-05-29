@@ -1,6 +1,6 @@
 # Conway's game of life
 
-## Python 3 imports
+## Python 3 packages
 
 * cursor
 * numpy
