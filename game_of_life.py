@@ -2,6 +2,7 @@ import numpy as np
 import cursor
 import os
 import sys
+import cv2
 from time import sleep
 
 class GameOfLife:
@@ -79,25 +80,40 @@ class GameOfLife:
             output += '\n'
         return output
 
-    def draw(self, generations=1, t=0):
+    def toPNG(self, i):
         """
-        Prints playing field
+        Creates ordered PNGs to animate the game of life
+        """
+        cv2.imwrite('output_' + str(i) + '.png', self.progress[-1] * 255)  # pylint: disable=E1101
+        print(f'generation: {i}')
+
+    def toCMD(self, i):
+        """
+        Prints playing field to CMD
+        """
+        os.system('cls')  # on windows
+        print(self.toString())
+        print('gen:', i)
+
+    def loop(self, generations=1, toCMD=None, toPNG=None):
+        """
+        Plays the game of life and prints either to CMD or to PNGs
 
         Args:
-            generations: how many evolutions will be simulated
-            t:           redraw frequency in ms
+            generations:  number of iterations
+            toCMD:        if True the game will be printed to the command line
+            toCMD:        if True the game will be saved as PNGs
         """
         cursor.hide()
         for i in range(generations):
-            os.system('cls')  # on windows
-            print(self.toString())
+            if toCMD:
+                self.toCMD(i)
+            if toPNG:
+                self.toPNG(i)
             self.iterate()
-            print('gen:', i)
-            if i != (generations - 1):
-                sleep(t / 1000)
         cursor.show()
 
 
 if __name__ == "__main__":
     test = GameOfLife(int(input('width: ')), int(input('height: ')))
-    test.draw(generations=(int(input('generations: '))) + 1)
+    test.loop(generations=(int(input('generations: '))) + 1, toPNG=True)
