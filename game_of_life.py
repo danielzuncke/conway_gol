@@ -55,6 +55,7 @@ class GameOfLife:
         if len(self.progress) == 5:
             if (np.all(self.progress[-1] == self.progress[-3]) or
                     np.all(self.progress[-1] == self.progress[-4])):
+                cursor.show()
                 sys.exit('stuck in recurrent loop')
             self.progress.pop(0)
 
