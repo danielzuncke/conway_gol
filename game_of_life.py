@@ -49,6 +49,12 @@ class GameOfLife:
         self.progress.append(temp)
         # TODO: break if caught in recurring loop
 
+    def caught(self):
+        for A in self.progress[:-1]:
+            if np.array_equal(self.progress[-1], A):
+                return True
+        return False
+
     def toPNG(self, A, scale, x=0):
         """
         Creates ordered PNGs to animate the game of life
@@ -74,7 +80,8 @@ class GameOfLife:
         print(output)
         print(f'gen: {x}')
 
-    def loop(self, generations=1, toCMD=None, singlePNG=None, singlePNGscale=0, multiPNG=None, multiPNGscale=0):
+    def loop(self, generations=1, toCMD=None, singlePNG=None, singlePNGscale=0,
+             multiPNG=None, multiPNGscale=0, loopLen=5):
         """
         Plays the game of life and prints either to CMD or to PNGs
 
@@ -84,16 +91,17 @@ class GameOfLife:
             toCMD:        if True the game will be saved as PNGs
         """
         cursor.hide()
-        for i in range(generations - 1):
+        for i in range(generations):
             if toCMD:
-                self.toCMD(self.progress[-1], i)
+                self.toCMD(self.progress[-1], i + 1)
             if multiPNG:
-                self.toPNG(self.progress[-1], multiPNGscale, i)
+                self.toPNG(self.progress[-1], multiPNGscale, i + 1)
             self.iterate(self.progress[-1])
-        if toCMD:
-            self.toCMD(self.progress[-1], generations)
-        if multiPNG:
-            self.toPNG(self.progress[-1], multiPNGscale, generations)
+            if len(self.progress) > loopLen:
+                self.progress.pop(0)
+                if self.caught():
+                    print('caught in loop')
+                    break
         if singlePNG:
             self.toPNG(self.progress[-1], singlePNGscale, generations)
         cursor.show()
@@ -113,4 +121,4 @@ class GameOfLife:
 if __name__ == "__main__":
     test = GameOfLife(int(input('width: ')), int(input('height: ')))
     test.loop(generations=(int(input('generations: '))),
-              toCMD=True, multiPNG=True, multiPNGscale=3)
+              toCMD=True, multiPNG=False, multiPNGscale=3)
