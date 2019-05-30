@@ -9,6 +9,7 @@
 ## TODO's
 
 * pause on keyhit, enter menu
+* break when caught in loop
 * menu with ability to:
   * save and load matrix
   * import matrix from png
