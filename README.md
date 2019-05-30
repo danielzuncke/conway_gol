@@ -8,6 +8,7 @@
 
 ## TODO's
 
+* multiline evaluation and multithreading for faster evaluation
 * pause on keyhit, enter menu
 * break when caught in loop
 * menu with ability to:
