@@ -29,7 +29,7 @@ class GameOfLife:
         """
         Creates next generation and append to progress list
         """
-        t1 = milli
+        t1 = milli()
         temp = np.zeros((A.shape[0], A.shape[1]))
         # cell who's neighbors are counted A[x, y]
         for x in range(A.shape[0]):
@@ -51,30 +51,29 @@ class GameOfLife:
                 elif neighbors == 2 and A[x, y] == 1:
                     temp[x, y] = 1
         self.progress.append(temp)
-        t2 = milli
+        t2 = milli()
         print(f'def iterate in ms: {t2 - t1}')
 
     def caught(self):
-        t1 = milli
+        t1 = milli()
         for A in self.progress[:-1]:
             if np.array_equal(self.progress[-1], A):
-                t2 = milli
+                t2 = milli()
                 print(f'def iterate in ms: {t2 - t1}')
                 return True
-        t2 = milli
+        t2 = milli()
         print(f'def caught in ms: {t2 - t1}')
         return False
 
-    def toPNG(self, A, scale, x=0):
+    def toPNG(self, A, scale, x):
         """
         Creates ordered PNGs to animate the game of life
         """
-        t1 = milli
-        for i in range(scale):
-            A = self.doubleTime(A)
+        t1 = milli()
+        A = self.doubleTime(A, scale)
         cv2.imwrite('output_' + str(x) + '.png', A * 255)  # pylint: disable=E1101
         print(f'gen: {x}')
-        t2 = milli
+        t2 = milli()
         print(f'def toPNG in ms: {t2 - t1}')
 
     def toCMD(self, A, x=0):
@@ -93,8 +92,8 @@ class GameOfLife:
         print(output)
         print(f'gen: {x}')
 
-    def loop(self, generations=1, toCMD=None, singlePNG=None, singlePNGscale=0,
-             multiPNG=None, multiPNGscale=0, loopLen=5):
+    def loop(self, generations=1, toCMD=None, singlePNG=None, singlePNGscale=1,
+             multiPNG=None, multiPNGscale=1, loopLen=5):
         """
         Plays the game of life and prints either to CMD or to PNGs
 
@@ -109,37 +108,44 @@ class GameOfLife:
                 self.toCMD(self.progress[-1], i + 1)
             if multiPNG:
                 self.toPNG(self.progress[-1], multiPNGscale, i + 1)
-                os.rename('%Projekte%/Python/conway_gol/output_' +
-                          str(i + 1) + '.png',
-                          '%Projekte%/Python/conway_gol/output/output_'
-                          + str(i + 1) + '.png')
+                # TODO: move files to directory, %path% doens't work
+                # os.rename('%Projekte%\\Python\\conway_gol\\output_' +
+                #          str(i + 1) + '.png',
+                #          '%Projekte%\\Python\\conway_gol\\output\\output_'
+                #          + str(i + 1) + '.png')
             self.iterate(self.progress[-1])
             if len(self.progress) > loopLen:
                 self.progress.pop(0)
                 if self.caught():
+                    print()
+                    self.toPNG(self.progress[-1], multiPNGscale, i + 1)
                     print('caught in loop')
                     break
+        print()
         if singlePNG:
             self.toPNG(self.progress[-1], singlePNGscale, generations)
-            os.rename('%Projekte%/Python/conway_gol/output_' +
-                      str(i + 1) + '.png',
-                      '%Projekte%/Python/conway_gol/output/output_'
-                      + str(i + 1) + '.png')
+            # TODO: move files to directory, %path% doesn't work
+            # os.rename('%Projekte%\\Python\\conway_gol\\output_' +
+            #          str(i + 1) + '.png',
+            #          '%Projekte%\\Python\\conway_gol\\output\\output_'
+            #          + str(i + 1) + '.png')
         cursor.show()
 
-    def doubleTime(self, A):
+    def doubleTime(self, A, scale):
+        t1 = milli()
         temp = np.zeros(dtype=int, shape=(
-            2 * A.shape[0], 2 * A.shape[1]))
+            scale * A.shape[0], scale * A.shape[1]))
         for i in range(A.shape[0]):
-            for j in range(A.shape[1]):
-                temp[2 * i, 2 * j] = A[i, j]
-                temp[2 * i + 1, 2 * j] = A[i, j]
-                temp[2 * i, 2 * j + 1] = A[i, j]
-                temp[2 * i + 1, 2 * j + 1] = A[i, j]
+            for a in range(scale):
+                for j in range(A.shape[1]):
+                    for b in range(scale):
+                        temp[scale * i + a, scale * j + b] = A[i, j]
+        t2 = milli()
+        print(f'def doubleTime in ms: {t2 - t1}')
         return temp
 
 
 if __name__ == "__main__":
     test = GameOfLife(int(input('width: ')), int(input('height: ')))
     test.loop(generations=(int(input('generations: '))),
-              toCMD=False, multiPNG=True, multiPNGscale=3)
+              toCMD=False, multiPNG=True, multiPNGscale=5)
