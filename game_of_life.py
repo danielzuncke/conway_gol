@@ -25,7 +25,10 @@ class GameOfLife:
     """
 
     def __init__(self, width, height):
-        self.Arena = np.random.randint(2, size=(height, width))
+        self.width = width
+        self.height = height
+        self.scaleMatrix = None
+        self.Arena = np.random.randint(2, size=(height, width), dtype=np.int)
         self.progress = []  # stores only last 4 generations
         self.progress.append(self.Arena)
 
@@ -58,11 +61,9 @@ class GameOfLife:
                 elif neighbors == 2 and A[x, y] == 1:
                     temp[x, y] = 1
         self.progress.append(temp)
-        t2 = milli()
-        print(f'def iterate in ms: {t2 - t1}')
+        print(f'def iterate in ms: {milli() - t1}')
 
-    # TODO: define depth that will be controlled
-    def caught(self):
+    def caught(self, depth=5):
         """
         Checks if game is stuck by looking for for duplicates in progress list
 
@@ -71,14 +72,26 @@ class GameOfLife:
             False:   when not caught in a loop
         """
         t1 = milli()
-        for A in self.progress[:-1]:
+        if len(self.progress) == 1:
+            return False
+        if depth > len(self.progress):
+            depth = len(self.progress)
+        for A in self.progress[len(self.progress) -
+                               depth:len(self.progress) - 1]:
             if np.array_equal(self.progress[-1], A):
-                t2 = milli()
-                print(f'def iterate in ms: {t2 - t1}')
+                print(f'def iterate in ms: {milli() - t1}')  # why def iterate?
                 return True
-        t2 = milli()
-        print(f'def caught in ms: {t2 - t1}')
+        print(f'def caught in ms: {milli() - t1}')
         return False
+
+    def setScaleMatrix(self, scale):
+        t1 = milli()
+        self.scaleMatrix = np.zeros((self.height, self.width * scale),
+                                    dtype=np.int)
+        for a in range(self.height):
+            for b in range(scale):
+                self.scaleMatrix[a, a * scale + b] = 1
+        print(f'def setScaleMatrix in ms: {milli() - t1}')
 
     def scaleUp(self, A, scale):
         """
@@ -91,18 +104,11 @@ class GameOfLife:
         Returns:
             temp:    scaled matrix A
         """
-        t1 = milli()
-        temp = np.zeros(dtype=int, shape=(
-            scale * A.shape[0], scale * A.shape[1]))
-        for i in range(A.shape[0]):
-            for a in range(scale):
-                for j in range(A.shape[1]):
-                    for b in range(scale):
-                        temp[scale * i + a, scale * j + b] = A[i, j]
-        t2 = milli()
-        print(f'def scaleUp in ms: {t2 - t1}')
-        return temp
+        if self.scaleMatrix is None:
+            self.setScaleMatrix(scale)
+        return ((A@self.scaleMatrix).transpose()@self.scaleMatrix).transpose()
 
+    # TODO: multithread
     def toPNG(self, A, scale, x):
         """
         Creates ordered PNGs
@@ -114,11 +120,12 @@ class GameOfLife:
             x:      current generation (to view progress in command line)
         """
         t1 = milli()
+        t2 = milli()
         A = self.scaleUp(A, scale)
+        print(f'def scaleUp in ms: {milli() - t2}')
         cv2.imwrite('output_' + str(x) + '.png', A * 255)  # pylint: disable=E1101
         print(f'gen: {x}')
-        t2 = milli()
-        print(f'def toPNG in ms: {t2 - t1}')
+        print(f'def toPNG in ms: {milli() - t1}')
 
     def toCMD(self, A, x=0):
         """
@@ -170,13 +177,12 @@ class GameOfLife:
                 #          '%Projekte%\\Python\\conway_gol\\output\\output_'
                 #          + str(i + 1) + '.png')
             self.iterate(self.progress[-1])
-            if len(self.progress) > loopLen:
-                self.progress.pop(0)
-                if self.caught():
-                    print()
-                    self.toPNG(self.progress[-1], multiPNGscale, i + 1)
-                    print('caught in loop')
-                    break
+            if self.caught():
+                print()
+                self.toPNG(self.progress[-1], multiPNGscale, i + 1)
+                print('caught in loop')
+                break
+            print()
         print()
         if singlePNG:
             self.toPNG(self.progress[-1], singlePNGscale, generations)
