@@ -9,7 +9,7 @@
 ## TODO's
 
 * define depth that will be checked for loops
-* multiline evaluation and multithreading for faster evaluation
+* def iterate: multiline reading and multithreading for faster evaluation
 * benchmark and optimize
 * pause on keyhit, enter menu
 * move output to seperate folder
