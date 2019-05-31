@@ -27,9 +27,10 @@ class GameOfLife:
     Functions:
         iterate:   calculates next generation
         caught:    returns True if game is caught in loop
-        scaleUp:   scales matrix up
-        toPNG:     saves matrix to png file
-        toCMD:     prints matrix to command line
+        setScaleMatrix:  can be called to set scaleMatrix
+        scaleUp:   scales a given matrix up for better presentation
+        toPNG:     saves given matrix to png file
+        toCMD:     prints a given matrix to command line
         loop:      plays the game
     """
 
@@ -40,6 +41,7 @@ class GameOfLife:
         self.Arena = np.random.randint(2, size=(height, width), dtype=np.int)
         self.progress = [self.Arena]
 
+    # TODO: implement faster algorithm (that can make use of multithreading)
     def iterate(self, A):
         """
         Creates next generation and appends it to progress list
@@ -102,7 +104,13 @@ class GameOfLife:
         print(f'def caught in ms: {milli() - t1}')
         return False
 
-    def setScaleMatrix(self, scale):
+    def setScaleMatrix(self, scale=1):
+        """
+        Function to set self.scaleMatrix
+
+        Args:
+            scale:  factor by which the matrix is supposed to be bigger
+        """
         t1 = milli()
         self.scaleMatrix = np.zeros((self.height, self.width * scale),
                                     dtype=np.int)
@@ -111,9 +119,9 @@ class GameOfLife:
                 self.scaleMatrix[a, a * scale + b] = 1
         print(f'def setScaleMatrix in ms: {milli() - t1}')
 
-    def scaleUp(self, A, scale):
+    def scaleUp(self, A, scale=1):
         """
-        Scale up matrix size by a factor: [2, 2] * 3 = [6, 6]
+        Scale up matrix size by a factor: [2, 3] * 3 = [6, 9]
 
         Args:
             A:       matrix to be scaled
@@ -127,15 +135,15 @@ class GameOfLife:
         return ((A@self.scaleMatrix).transpose()@self.scaleMatrix).transpose()
 
     # TODO: multithread
-    def toPNG(self, A, scale, x):
+    def toPNG(self, A, x, scale=1):
         """
         Creates ordered PNGs
 
         Args:
             A:      matrix that will be printed to png
+            x:      current generation (to view progress in command line)
             scale:  scales the size that one matrix value will
                     take in pixels
-            x:      current generation (to view progress in command line)
         """
         t1 = milli()
         t2 = milli()
@@ -165,6 +173,7 @@ class GameOfLife:
         print(output)
         print(f'gen: {x}')
 
+    # TODO: fix docstring last, will need a lot of changing otherwise
     def loop(self, generations=1, toCMD=None, singlePNG=None, singlePNGscale=1,
              multiPNG=None, multiPNGscale=1, loopLen=5):
         """
@@ -188,7 +197,7 @@ class GameOfLife:
             if toCMD:
                 self.toCMD(self.progress[-1], i + 1)
             if multiPNG:
-                self.toPNG(self.progress[-1], multiPNGscale, i + 1)
+                self.toPNG(self.progress[-1], i + 1, multiPNGscale)
                 # TODO: move files to directory, %path% doens't work
                 # os.rename('%Projekte%\\Python\\conway_gol\\output_' +
                 #          str(i + 1) + '.png',
