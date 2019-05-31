@@ -9,7 +9,9 @@
 ## TODO's
 
 * multiline evaluation and multithreading for faster evaluation
+* benchmark and optimize
 * pause on keyhit, enter menu
+* move output to seperate folder
 * menu with ability to:
   * save and load matrix
   * import matrix from png

@@ -3,6 +3,9 @@ import cursor
 import os
 import sys
 import cv2
+import time
+
+def milli(): return int(round(time.time() * 1000))
 
 class GameOfLife:
     """
@@ -26,6 +29,7 @@ class GameOfLife:
         """
         Creates next generation and append to progress list
         """
+        t1 = milli
         temp = np.zeros((A.shape[0], A.shape[1]))
         # cell who's neighbors are counted A[x, y]
         for x in range(A.shape[0]):
@@ -47,22 +51,31 @@ class GameOfLife:
                 elif neighbors == 2 and A[x, y] == 1:
                     temp[x, y] = 1
         self.progress.append(temp)
-        # TODO: break if caught in recurring loop
+        t2 = milli
+        print(f'def iterate in ms: {t2 - t1}')
 
     def caught(self):
+        t1 = milli
         for A in self.progress[:-1]:
             if np.array_equal(self.progress[-1], A):
+                t2 = milli
+                print(f'def iterate in ms: {t2 - t1}')
                 return True
+        t2 = milli
+        print(f'def caught in ms: {t2 - t1}')
         return False
 
     def toPNG(self, A, scale, x=0):
         """
         Creates ordered PNGs to animate the game of life
         """
+        t1 = milli
         for i in range(scale):
             A = self.doubleTime(A)
         cv2.imwrite('output_' + str(x) + '.png', A * 255)  # pylint: disable=E1101
         print(f'gen: {x}')
+        t2 = milli
+        print(f'def toPNG in ms: {t2 - t1}')
 
     def toCMD(self, A, x=0):
         """
@@ -96,6 +109,10 @@ class GameOfLife:
                 self.toCMD(self.progress[-1], i + 1)
             if multiPNG:
                 self.toPNG(self.progress[-1], multiPNGscale, i + 1)
+                os.rename('%Projekte%/Python/conway_gol/output_' +
+                          str(i + 1) + '.png',
+                          '%Projekte%/Python/conway_gol/output/output_'
+                          + str(i + 1) + '.png')
             self.iterate(self.progress[-1])
             if len(self.progress) > loopLen:
                 self.progress.pop(0)
@@ -104,6 +121,10 @@ class GameOfLife:
                     break
         if singlePNG:
             self.toPNG(self.progress[-1], singlePNGscale, generations)
+            os.rename('%Projekte%/Python/conway_gol/output_' +
+                      str(i + 1) + '.png',
+                      '%Projekte%/Python/conway_gol/output/output_'
+                      + str(i + 1) + '.png')
         cursor.show()
 
     def doubleTime(self, A):
@@ -121,4 +142,4 @@ class GameOfLife:
 if __name__ == "__main__":
     test = GameOfLife(int(input('width: ')), int(input('height: ')))
     test.loop(generations=(int(input('generations: '))),
-              toCMD=True, multiPNG=False, multiPNGscale=3)
+              toCMD=False, multiPNG=True, multiPNGscale=3)
