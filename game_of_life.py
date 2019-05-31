@@ -15,6 +15,15 @@ class GameOfLife:
         width:     width of matrix
         height:    height of matrix
 
+    Vars:
+        width:    width of matrix
+        height:   height of matrix
+        scaleMatrix:  initiated as None, when the matrix needs to be scaled
+                      to make image it will be sized to be the multiplier in
+                      the matrix multiplication
+        Arena:    randomly generated first generation
+        progress: list containing all generations
+
     Functions:
         iterate:   calculates next generation
         caught:    returns True if game is caught in loop
@@ -29,8 +38,7 @@ class GameOfLife:
         self.height = height
         self.scaleMatrix = None
         self.Arena = np.random.randint(2, size=(height, width), dtype=np.int)
-        self.progress = []  # stores only last 4 generations
-        self.progress.append(self.Arena)
+        self.progress = [self.Arena]
 
     def iterate(self, A):
         """
@@ -63,9 +71,19 @@ class GameOfLife:
         self.progress.append(temp)
         print(f'def iterate in ms: {milli() - t1}')
 
-    def caught(self, depth=5):
+    def caught(self, depth=2):
         """
-        Checks if game is stuck by looking for for duplicates in progress list
+        Checks if game is stuck by looking for duplicates in progress list
+
+        Args:
+            depth:    defines how many previous generations
+                      0: won't check any
+                      1: returns True if playing field doesn't change at all
+                      2: returns True also if alternating structures exist
+                         (recommended)
+                      to detect more complex loops depth can be set higher,
+                      usually not necessary, high numbers will impact
+                      performance
 
         Returns:
             True:    when caught in a loop
@@ -76,8 +94,8 @@ class GameOfLife:
             return False
         if depth > len(self.progress):
             depth = len(self.progress)
-        for A in self.progress[len(self.progress) -
-                               depth:len(self.progress) - 1]:
+        for A in self.progress[len(self.progress) - 1 - depth:
+                               len(self.progress) - 1]:
             if np.array_equal(self.progress[-1], A):
                 print(f'def iterate in ms: {milli() - t1}')  # why def iterate?
                 return True
@@ -182,6 +200,7 @@ class GameOfLife:
                 self.toPNG(self.progress[-1], multiPNGscale, i + 1)
                 print('caught in loop')
                 break
+            print(f'length of progress[]: {len(self.progress)}')
             print()
         print()
         if singlePNG:
