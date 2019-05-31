@@ -12,12 +12,16 @@ class GameOfLife:
     Recreates Conway's game of life and can be printed to commandline
 
     Args:
-        width:       width of matrix
-        height:      height of matrix
+        width:     width of matrix
+        height:    height of matrix
 
     Functions:
-        toString:    returns a generation in form of a string
-        draw:        plays the game out and prints evolution process
+        iterate:   calculates next generation
+        caught:    returns True if game is caught in loop
+        scaleUp:   scales matrix up
+        toPNG:     saves matrix to png file
+        toCMD:     prints matrix to command line
+        loop:      plays the game
     """
 
     def __init__(self, width, height):
@@ -27,7 +31,10 @@ class GameOfLife:
 
     def iterate(self, A):
         """
-        Creates next generation and append to progress list
+        Creates next generation and appends it to progress list
+
+        Args:
+            A:    matrix to evaluate
         """
         t1 = milli()
         temp = np.zeros((A.shape[0], A.shape[1]))
@@ -54,7 +61,15 @@ class GameOfLife:
         t2 = milli()
         print(f'def iterate in ms: {t2 - t1}')
 
+    # TODO: define depth that will be controlled
     def caught(self):
+        """
+        Checks if game is stuck by looking for for duplicates in progress list
+
+        Returns:
+            True:    when caught in a loop
+            False:   when not caught in a loop
+        """
         t1 = milli()
         for A in self.progress[:-1]:
             if np.array_equal(self.progress[-1], A):
@@ -65,12 +80,41 @@ class GameOfLife:
         print(f'def caught in ms: {t2 - t1}')
         return False
 
-    def toPNG(self, A, scale, x):
+    def scaleUp(self, A, scale):
         """
-        Creates ordered PNGs to animate the game of life
+        Scale up matrix size by a factor: [2, 2] * 3 = [6, 6]
+
+        Args:
+            A:       matrix to be scaled
+            scale:   factor to be applied
+
+        Returns:
+            temp:    scaled matrix A
         """
         t1 = milli()
-        A = self.doubleTime(A, scale)
+        temp = np.zeros(dtype=int, shape=(
+            scale * A.shape[0], scale * A.shape[1]))
+        for i in range(A.shape[0]):
+            for a in range(scale):
+                for j in range(A.shape[1]):
+                    for b in range(scale):
+                        temp[scale * i + a, scale * j + b] = A[i, j]
+        t2 = milli()
+        print(f'def scaleUp in ms: {t2 - t1}')
+        return temp
+
+    def toPNG(self, A, scale, x):
+        """
+        Creates ordered PNGs
+
+        Args:
+            A:      matrix that will be printed to png
+            scale:  scales the size that one matrix value will
+                    take in pixels
+            x:      current generation (to view progress in command line)
+        """
+        t1 = milli()
+        A = self.scaleUp(A, scale)
         cv2.imwrite('output_' + str(x) + '.png', A * 255)  # pylint: disable=E1101
         print(f'gen: {x}')
         t2 = milli()
@@ -79,6 +123,10 @@ class GameOfLife:
     def toCMD(self, A, x=0):
         """
         Prints playing field to CMD
+
+        Args:
+            A:    matrix to be printed
+            x:    generation
         """
         os.system('cls')  # on windows
         output = '\n'
@@ -98,9 +146,17 @@ class GameOfLife:
         Plays the game of life and prints either to CMD or to PNGs
 
         Args:
-            generations:  number of iterations
-            toCMD:        if True the game will be printed to the command line
-            toCMD:        if True the game will be saved as PNGs
+            generations:     number of iterations
+            toCMD:           if True the game will be printed to the
+                             command line
+            singlePNG:       if True the final outcome will be saved as PNG
+            singlePNGscale:  scales the size that one matrix value will
+                             take in pixels
+            multiPNG:        if True the playthrough will be saved as PNG
+            multiPNGscale:   scales the size that one matrix value will
+                             take in pixels
+            loopLen:         number of matrizes that are recorded going back
+                             from most recent
         """
         cursor.hide()
         for i in range(generations):
@@ -130,19 +186,6 @@ class GameOfLife:
             #          '%Projekte%\\Python\\conway_gol\\output\\output_'
             #          + str(i + 1) + '.png')
         cursor.show()
-
-    def doubleTime(self, A, scale):
-        t1 = milli()
-        temp = np.zeros(dtype=int, shape=(
-            scale * A.shape[0], scale * A.shape[1]))
-        for i in range(A.shape[0]):
-            for a in range(scale):
-                for j in range(A.shape[1]):
-                    for b in range(scale):
-                        temp[scale * i + a, scale * j + b] = A[i, j]
-        t2 = milli()
-        print(f'def doubleTime in ms: {t2 - t1}')
-        return temp
 
 
 if __name__ == "__main__":
