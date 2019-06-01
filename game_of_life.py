@@ -37,8 +37,6 @@ class GameOfLife:
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.scaleMatrix = None
-        self.scaleMatrixT = None
         self.statusString = '\n\n'
         self.progress = [np.random.randint(2, size=(height, width),
                                            dtype=np.int)]
@@ -114,48 +112,6 @@ class GameOfLife:
                                   str(milli() - t1) + '\n')
         return False
 
-    def setScaleMatrix(self, scale=1, status=False):
-        """
-        Function to set self.scaleMatrix
-
-        Args:
-            scale:  factor by which the matrix is supposed to be bigger
-        """
-        if status:
-            t1 = milli()
-        self.scaleMatrix = np.zeros((self.width, self.width * scale),
-                                    dtype=np.int)
-        for a in range(self.width):
-            for b in range(scale):
-                self.scaleMatrix[a, a * scale + b] = 1
-        if self.height != self.width:
-            self.scaleMatrixT = np.zeros((self.height, self.height * scale),
-                                         dtype=np.int)
-            for a in range(self.height):
-                for b in range(scale):
-                    self.scaleMatrixT[a, a * scale + b] = 1
-        if status:
-            self.statusString += ('def setScaleMatrix in ms: ' +
-                                  str(milli() - t1) + '\n')
-
-    def scaleUp(self, A, scale=1):
-        """
-        Scale up matrix size by a factor: [2, 3] * 3 = [6, 9]
-
-        Args:
-            A:       matrix to be scaled
-            scale:   factor to be applied
-
-        Returns:
-            scaled matrix A
-        """
-        if self.scaleMatrix is None:
-            self.setScaleMatrix(scale)
-        if self.width == self.height:
-            return ((A @ self.scaleMatrix).transpose() @
-                    self.scaleMatrix).transpose()
-        return ((A@self.scaleMatrix).transpose()@self.scaleMatrixT).transpose()
-
     # TODO: multithread
     def toPNG(self, A, x, scale=1, status=False):
         """
@@ -167,14 +123,9 @@ class GameOfLife:
             scale:  scales the size that one matrix value will
                     take in pixels
         """
-        if status:
-            t1 = milli()
-        A = self.scaleUp(A, scale)
-        if status:
-            self.statusString += ('def scaleUp in ms: ' +
-                                  str(milli() - t1) + '\n')
-            t1 = milli()
-        cv2.imwrite('output_' + str(x) + '.png', A * 255)  # pylint: disable=E1101
+        t1 = milli()
+        cv2.imwrite('output_' + str(x) + '.png',  # pylint: disable=E1101
+                    np.kron(A, np.ones((scale, scale), dtype=np.int)) * 255)
         if status:
             self.statusString += ('def toPNG in ms: ' +
                                   str(milli() - t1) + '\n')
