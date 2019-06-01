@@ -8,7 +8,6 @@
 
 ## TODO's
 
-* add function to print status (current gen, times per function, ...)
 * def iterate: multiline reading and multithreading for faster evaluation
 * pause on keyhit, enter menu
 * move output to seperate folder
