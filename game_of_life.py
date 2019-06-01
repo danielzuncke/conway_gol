@@ -38,18 +38,21 @@ class GameOfLife:
         self.width = width
         self.height = height
         self.scaleMatrix = None
-        self.Arena = np.random.randint(2, size=(height, width), dtype=np.int)
-        self.progress = [self.Arena]
+        self.scaleMatrixT = None
+        self.statusString = '\n\n'
+        self.progress = [np.random.randint(2, size=(height, width),
+                                           dtype=np.int)]
 
     # TODO: implement faster algorithm (that can make use of multithreading)
-    def iterate(self, A):
+    def iterate(self, A, status=False):
         """
         Creates next generation and appends it to progress list
 
         Args:
             A:    matrix to evaluate
         """
-        t1 = milli()
+        if status:
+            t1 = milli()
         temp = np.zeros((A.shape[0], A.shape[1]))
         # cell who's neighbors are counted A[x, y]
         for x in range(A.shape[0]):
@@ -71,9 +74,11 @@ class GameOfLife:
                 elif neighbors == 2 and A[x, y] == 1:
                     temp[x, y] = 1
         self.progress.append(temp)
-        print(f'def iterate in ms: {milli() - t1}')
+        if status:
+            self.statusString += ('def iterate in ms: ' +
+                                  str(milli() - t1) + '\n')
 
-    def caught(self, depth=2):
+    def caught(self, depth=2, status=False):
         """
         Checks if game is stuck by looking for duplicates in progress list
 
@@ -91,7 +96,8 @@ class GameOfLife:
             True:    when caught in a loop
             False:   when not caught in a loop
         """
-        t1 = milli()
+        if status:
+            t1 = milli()
         if len(self.progress) == 1:
             return False
         if depth > len(self.progress):
@@ -99,25 +105,38 @@ class GameOfLife:
         for A in self.progress[len(self.progress) - 1 - depth:
                                len(self.progress) - 1]:
             if np.array_equal(self.progress[-1], A):
-                print(f'def iterate in ms: {milli() - t1}')  # why def iterate?
+                if status:
+                    self.statusString += ('def caught in ms: ' +
+                                          str(milli() - t1) + '\n')
                 return True
-        print(f'def caught in ms: {milli() - t1}')
+        if status:
+            self.statusString += ('def caught in ms: ' +
+                                  str(milli() - t1) + '\n')
         return False
 
-    def setScaleMatrix(self, scale=1):
+    def setScaleMatrix(self, scale=1, status=False):
         """
         Function to set self.scaleMatrix
 
         Args:
             scale:  factor by which the matrix is supposed to be bigger
         """
-        t1 = milli()
-        self.scaleMatrix = np.zeros((self.height, self.width * scale),
+        if status:
+            t1 = milli()
+        self.scaleMatrix = np.zeros((self.width, self.width * scale),
                                     dtype=np.int)
-        for a in range(self.height):
+        for a in range(self.width):
             for b in range(scale):
                 self.scaleMatrix[a, a * scale + b] = 1
-        print(f'def setScaleMatrix in ms: {milli() - t1}')
+        if self.height != self.width:
+            self.scaleMatrixT = np.zeros((self.height, self.height * scale),
+                                         dtype=np.int)
+            for a in range(self.height):
+                for b in range(scale):
+                    self.scaleMatrixT[a, a * scale + b] = 1
+        if status:
+            self.statusString += ('def setScaleMatrix in ms: ' +
+                                  str(milli() - t1) + '\n')
 
     def scaleUp(self, A, scale=1):
         """
@@ -128,14 +147,17 @@ class GameOfLife:
             scale:   factor to be applied
 
         Returns:
-            temp:    scaled matrix A
+            scaled matrix A
         """
         if self.scaleMatrix is None:
             self.setScaleMatrix(scale)
-        return ((A@self.scaleMatrix).transpose()@self.scaleMatrix).transpose()
+        if self.width == self.height:
+            return ((A @ self.scaleMatrix).transpose() @
+                    self.scaleMatrix).transpose()
+        return ((A@self.scaleMatrix).transpose()@self.scaleMatrixT).transpose()
 
     # TODO: multithread
-    def toPNG(self, A, x, scale=1):
+    def toPNG(self, A, x, scale=1, status=False):
         """
         Creates ordered PNGs
 
@@ -145,13 +167,17 @@ class GameOfLife:
             scale:  scales the size that one matrix value will
                     take in pixels
         """
-        t1 = milli()
-        t2 = milli()
+        if status:
+            t1 = milli()
         A = self.scaleUp(A, scale)
-        print(f'def scaleUp in ms: {milli() - t2}')
+        if status:
+            self.statusString += ('def scaleUp in ms: ' +
+                                  str(milli() - t1) + '\n')
+            t1 = milli()
         cv2.imwrite('output_' + str(x) + '.png', A * 255)  # pylint: disable=E1101
-        print(f'gen: {x}')
-        print(f'def toPNG in ms: {milli() - t1}')
+        if status:
+            self.statusString += ('def toPNG in ms: ' +
+                                  str(milli() - t1) + '\n')
 
     def toCMD(self, A, x=0):
         """
@@ -173,9 +199,8 @@ class GameOfLife:
         print(output)
         print(f'gen: {x}')
 
-    # TODO: fix docstring last, will need a lot of changing otherwise
     def loop(self, generations=1, toCMD=None, singlePNG=None, singlePNGscale=1,
-             multiPNG=None, multiPNGscale=1, loopLen=5):
+             multiPNG=None, multiPNGscale=1, loopLen=5, depth=2, status=False):
         """
         Plays the game of life and prints either to CMD or to PNGs
 
@@ -192,37 +217,36 @@ class GameOfLife:
             loopLen:         number of matrizes that are recorded going back
                              from most recent
         """
-        cursor.hide()
-        for i in range(generations):
+        if toCMD:
+            cursor.hide()
+        for i in range(generations + 1):
+            if status:
+                self.statusString += 'generation: ' + str(i) + '\n'
             if toCMD:
-                self.toCMD(self.progress[-1], i + 1)
+                self.toCMD(self.progress[-1], i)
             if multiPNG:
-                self.toPNG(self.progress[-1], i + 1, multiPNGscale)
-                # TODO: move files to directory, %path% doens't work
-                # os.rename('%Projekte%\\Python\\conway_gol\\output_' +
-                #          str(i + 1) + '.png',
-                #          '%Projekte%\\Python\\conway_gol\\output\\output_'
-                #          + str(i + 1) + '.png')
-            self.iterate(self.progress[-1])
-            if self.caught():
-                print()
-                self.toPNG(self.progress[-1], multiPNGscale, i + 1)
+                self.toPNG(self.progress[-1], i, multiPNGscale, status)
+            if self.caught(depth, status):
+                self.toPNG(self.progress[-1], multiPNGscale, i, status)
+                if status:
+                    print(f'{self.statusString}\n')
+                    self.statusString = ''
                 print('caught in loop')
                 break
-            print(f'length of progress[]: {len(self.progress)}')
-            print()
-        print()
+            if i != generations:
+                self.iterate(self.progress[-1], status)
+            if status:
+                print(f'{self.statusString}\n')
+                self.statusString = ''
         if singlePNG:
-            self.toPNG(self.progress[-1], singlePNGscale, generations)
-            # TODO: move files to directory, %path% doesn't work
-            # os.rename('%Projekte%\\Python\\conway_gol\\output_' +
-            #          str(i + 1) + '.png',
-            #          '%Projekte%\\Python\\conway_gol\\output\\output_'
-            #          + str(i + 1) + '.png')
-        cursor.show()
+            self.toPNG(self.progress[-1], 0, singlePNGscale, status)
+            if status:
+                print(f'{self.statusString}\n')
+        if toCMD:
+            cursor.show()
 
 
 if __name__ == "__main__":
     test = GameOfLife(int(input('width: ')), int(input('height: ')))
     test.loop(generations=(int(input('generations: '))),
-              toCMD=False, multiPNG=True, multiPNGscale=5)
+              toCMD=False, multiPNG=True, multiPNGscale=5, status=True)
