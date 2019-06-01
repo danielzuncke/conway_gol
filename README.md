@@ -8,6 +8,7 @@
 
 ## TODO's
 
+* might need to do in batches so list with matrices doesn't get too long
 * def iterate: multiline reading and multithreading for faster evaluation
 * pause on keyhit, enter menu
 * move output to seperate folder
