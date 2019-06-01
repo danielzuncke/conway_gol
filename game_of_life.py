@@ -4,6 +4,7 @@ import os
 import sys
 import cv2
 import time
+import threading
 
 def milli(): return int(round(time.time() * 1000))
 
@@ -113,7 +114,7 @@ class GameOfLife:
         return False
 
     # TODO: multithread
-    def toPNG(self, A, x, scale=1, status=False):
+    def toPNG(self, scale):
         """
         Creates ordered PNGs
 
@@ -123,12 +124,15 @@ class GameOfLife:
             scale:  scales the size that one matrix value will
                     take in pixels
         """
-        t1 = milli()
-        cv2.imwrite('output_' + str(x) + '.png',  # pylint: disable=E1101
-                    np.kron(A, np.ones((scale, scale), dtype=np.int)) * 255)
-        if status:
-            self.statusString += ('def toPNG in ms: ' +
-                                  str(milli() - t1) + '\n')
+        threads = []
+        for x, A in enumerate(self.progress):
+            t = threading.Thread(target=(lambda x: cv2.imwrite(  # pylint: disable=E1101
+                'output_' + str(x) + '.png',
+                np.kron(A, np.ones((scale, scale),
+                                   dtype=np.int) * 255))), args=(x,))
+            threads.append(t)
+        [t.start() for t in threads]
+        [t.join() for t in threads]
 
     def toCMD(self, A, x=0):
         """
@@ -168,6 +172,8 @@ class GameOfLife:
             loopLen:         number of matrizes that are recorded going back
                              from most recent
         """
+        if status:
+            t1 = milli()
         if toCMD:
             cursor.hide()
         for i in range(generations + 1):
@@ -175,10 +181,7 @@ class GameOfLife:
                 self.statusString += 'generation: ' + str(i) + '\n'
             if toCMD:
                 self.toCMD(self.progress[-1], i)
-            if multiPNG:
-                self.toPNG(self.progress[-1], i, multiPNGscale, status)
             if self.caught(depth, status):
-                self.toPNG(self.progress[-1], multiPNGscale, i, status)
                 if status:
                     print(f'{self.statusString}\n')
                     self.statusString = ''
@@ -189,12 +192,16 @@ class GameOfLife:
             if status:
                 print(f'{self.statusString}\n')
                 self.statusString = ''
-        if singlePNG:
-            self.toPNG(self.progress[-1], 0, singlePNGscale, status)
-            if status:
-                print(f'{self.statusString}\n')
+        # if singlePNG:
+        #    self.toPNG(self.progress[-1], 0, singlePNGscale, status)
+        #    if status:
+        #        print(f'{self.statusString}\n')
+        t2 = milli()
+        self.toPNG(multiPNGscale)
+        print(f'def toPNG time in ms: {milli() - t2}')
         if toCMD:
             cursor.show()
+        print(f'\ntime in total : {milli() - t1} ms\n\n')
 
 
 if __name__ == "__main__":
