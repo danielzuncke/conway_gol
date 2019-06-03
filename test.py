@@ -47,8 +47,8 @@ class game:
                 t.join()
         # [t.start() for t in threads]
         # [t.join() for t in threads]
-        print(f'temp:\n{self.temp}\n')
-        self.progress.append(self.temp)
+        # print(f'temp:\n{self.temp}\n')
+        self.progress.append(self.temp.copy())
         print(f'temp added:\n{self.progress[-1]}\n')
 
     def toPNG(self, scale):
@@ -68,6 +68,7 @@ class game:
     def loop(self, generations=5, scale=5):
         for x in range(generations):
             self.iterate(self.progress[-1])
+
         self.toPNG(scale)
 
 
