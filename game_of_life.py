@@ -35,10 +35,11 @@ class GameOfLife:
         loop:      plays the game
     """
 
-    def __init__(self, width, height, max_workers=4):
+    def __init__(self, width, height, max_threads=4, max_processes=1):
         self.width = width
         self.height = height
-        self.max_workers = max_workers
+        self.max_threads = max_threads
+        self.max_processes = max_processes
         self.progress = [np.random.randint(2, size=(height, width),
                                            dtype=np.int)]
         self.temp = np.zeros((self.height, self.width), dtype=np.int)
@@ -74,7 +75,7 @@ class GameOfLife:
         Args:
             A:    matrix to evaluate
         """
-        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+        with ThreadPoolExecutor(max_workers=self.max_threads) as executor:
             for x in range(self.height):
                 for y in range(self.width):
                     executor.submit(self.countNeighbors(A, x, y))
@@ -120,7 +121,7 @@ class GameOfLife:
                     take in pixels
         """
         if singlePNG is None:
-            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            with ThreadPoolExecutor(max_workers=self.max_threads) as executor:
                 for x, A in enumerate(self.progress):
                     executor.submit(cv2.imwrite('output_' + str(x) + '.png',  # pylint: disable=E1101
                                                 np.kron(A, np.ones((scale, scale),
