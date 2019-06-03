@@ -4,7 +4,7 @@ import os
 import sys
 import cv2
 import time
-import threading
+from concurrent.futures import ThreadPoolExecutor
 
 def milli(): return int(round(time.time() * 1000))
 
@@ -35,14 +35,13 @@ class GameOfLife:
         loop:      plays the game
     """
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, max_workers=4):
         self.width = width
         self.height = height
+        self.max_workers = max_workers
         self.progress = [np.random.randint(2, size=(height, width),
                                            dtype=np.int)]
         self.temp = np.zeros((self.height, self.width), dtype=np.int)
-
-    # TODO: implement faster algorithm (that can make use of multithreading)
 
     def countNeighbors(self, A, x, y):
         neighbors = 0
@@ -65,6 +64,9 @@ class GameOfLife:
         self.temp[x, y] = 0
         return
 
+    # TODO: implement multiprocessing additionally (divide matrix in similar
+    #       pieces and calculate them independently)
+    # TODO: search for parts that don't change
     def iterate(self, A):
         """
         Creates next generation and appends it to progress list
@@ -72,16 +74,13 @@ class GameOfLife:
         Args:
             A:    matrix to evaluate
         """
-        threads = []
-        for x in range(self.height):
-            for y in range(self.width):
-                t = threading.Thread(
-                    target=(lambda A, x, y: self.countNeighbors(A, x, y)), args=(A, x, y,))
-                threads.append(t)
-        [t.start() for t in threads]
-        [t.join() for t in threads]
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            for x in range(self.height):
+                for y in range(self.width):
+                    executor.submit(self.countNeighbors(A, x, y))
         self.progress.append(self.temp.copy())
 
+    # TODO: implement multithreading
     def caught(self, depth=2):
         """
         Checks if game is stuck by looking for duplicates in progress list
@@ -110,7 +109,6 @@ class GameOfLife:
                 return True
         return False
 
-    # TODO: multithread
     def toPNG(self, scale, singlePNG=None):
         """
         Creates ordered PNGs
@@ -121,20 +119,15 @@ class GameOfLife:
             scale:  scales the size that one matrix value will
                     take in pixels
         """
-        threads = []
         if singlePNG is None:
-            for x, A in enumerate(self.progress):
-                t = threading.Thread(target=(lambda x, A: cv2.imwrite(  # pylint: disable=E1101
-                    'output_' + str(x) + '.png',
-                    np.kron(A, np.ones((scale, scale),
-                                       dtype=np.int) * 255))), args=(x, A,))
-                threads.append(t)
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                for x, A in enumerate(self.progress):
+                    executor.submit(cv2.imwrite('output_' + str(x) + '.png',  # pylint: disable=E1101
+                                                np.kron(A, np.ones((scale, scale),
+                                                                   dtype=np.int) * 255)))
         else:
             cv2.imwrite('single_output.png', np.kron(A,  # pylint: disable=E1101
                                                      np.ones((scale, scale), dtype=np.int) * 255))
-            print(f'list progress {x}:\n{A}\n')
-        [t.start() for t in threads]
-        [t.join() for t in threads]
 
     def toCMD(self, A, x=0):
         """
