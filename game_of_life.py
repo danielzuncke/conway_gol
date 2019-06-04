@@ -1,6 +1,7 @@
 import numpy as np
 import cursor
 import os
+import shutil
 import sys
 import cv2
 import time
@@ -40,6 +41,8 @@ class GameOfLife:
         self.height = height
         self.max_threads = max_threads
         self.max_processes = max_processes
+        self.src_path = os.path.abspath('.') + ('\\\\')
+        self.dst_path = os.path.abspath('.') + ('\\\\output\\\\')
         self.progress = [np.random.randint(2, size=(height, width),
                                            dtype=np.int)]
         self.temp = np.zeros((self.height, self.width), dtype=np.int)
@@ -126,9 +129,12 @@ class GameOfLife:
                     executor.submit(cv2.imwrite('output_' + str(x) + '.png',  # pylint: disable=E1101
                                                 np.kron(A, np.ones((scale, scale),
                                                                    dtype=np.int) * 255)))
+                    shutil.move(self.src_path + 'output_' + str(x) + '.png',
+                                self.dst_path + 'output_' + str(x) + '.png')
         else:
             cv2.imwrite('single_output.png', np.kron(A,  # pylint: disable=E1101
                                                      np.ones((scale, scale), dtype=np.int) * 255))
+            shutil.move(self.src_path + 'single_output.png', self.dst_path + 'single_output.png')
 
     def toCMD(self, A, x=0):
         """
