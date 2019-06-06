@@ -5,7 +5,7 @@ import shutil
 import sys
 import cv2
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 
 def milli(): return int(round(time.time() * 1000))
 
@@ -36,16 +36,23 @@ class GameOfLife:
         loop:      plays the game
     """
 
-    def __init__(self, width, height, max_threads=4, max_processes=1):
+    def __init__(self, width, height, max_processes=1):
         self.width = width
         self.height = height
-        self.max_threads = max_threads
         self.max_processes = max_processes
         self.src_path = os.path.abspath('.') + ('\\\\')
         self.dst_path = os.path.abspath('.') + ('\\\\output\\\\')
         self.progress = [np.random.randint(2, size=(height, width),
                                            dtype=np.int)]
         self.temp = np.zeros((self.height, self.width), dtype=np.int)
+
+    def processHandler(self, **kwargs):
+        with ProcessPoolExecutor(max_workers=self.max_processes) as executor:
+            if todo == 'iterate':
+                ...
+            elif todo == 'toPNG':
+                ...
+        return
 
     def countNeighbors(self, A, x, y):
         neighbors = 0
@@ -78,13 +85,13 @@ class GameOfLife:
         Args:
             A:    matrix to evaluate
         """
-        with ThreadPoolExecutor(max_workers=self.max_threads) as executor:
+        with ProcessPoolExecutor(max_workers=self.max_processes) as executor:
             for x in range(self.height):
                 for y in range(self.width):
                     executor.submit(self.countNeighbors(A, x, y))
         self.progress.append(self.temp.copy())
 
-    # TODO: implement multithreading
+    # TODO: implement optimise for multiprocessing
     def caught(self, depth=2):
         """
         Checks if game is stuck by looking for duplicates in progress list
@@ -124,7 +131,7 @@ class GameOfLife:
                     take in pixels
         """
         if singlePNG is None:
-            with ThreadPoolExecutor(max_workers=self.max_threads) as executor:
+            with ProcessPoolExecutor(max_workers=self.max_processes) as executor:
                 for x, A in enumerate(self.progress):
                     executor.submit(cv2.imwrite('output_' + str(x) + '.png',  # pylint: disable=E1101
                                                 np.kron(A, np.ones((scale, scale),
@@ -184,10 +191,12 @@ class GameOfLife:
                 print('caught in loop')
                 break
             if i != generations:
-                self.iterate(self.progress[-1])
+                self.processHandler('iterate')
+                # self.iterate(self.progress[-1])
             print(f'finished {i} in {(milli() - t)/1000}s')
         if multiPNG:
-            self.toPNG(multiPNGscale)
+            self.processHandler('toPNG')
+            # self.toPNG(multiPNGscale)
         if singlePNG:
             self.toPNG(singlePNGscale, self.progress[-1])
         if toCMD:
