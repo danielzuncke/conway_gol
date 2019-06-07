@@ -7,7 +7,8 @@ import cv2
 import time
 from math import ceil
 from concurrent.futures import ProcessPoolExecutor
-from concurrent.futures import ThreadPoolExecutor
+# TODO: multithreading for cmd output
+# from concurrent.futures import ThreadPoolExecutor
 
 def milli(): return int(round(time.time() * 1000))
 
@@ -48,14 +49,21 @@ class GameOfLife:
                                            dtype=np.int)]
         self.temp = np.zeros((self.height, self.width), dtype=np.int)
 
+    # TODO: global processHandler probably better, otherwise it needs to get
+    # initiated for every step
+    # processHandler should only call functions and not include the functional
+    # details within
     def processHandler(self, iterate=False, multiPNG=False, singlePNG=False):
         with ProcessPoolExecutor(max_workers=self.max_processes) as executor:
             if iterate:
                 submatrices = [None for x in range(self.max_processes)]
-                if self.height > self.width:
-                    ...
-                else:
-                    ...
+                for x in range(self.max_processes):
+                    if self.height > self.width:
+                        submatrices[x] = executor.submit(self.iterate(self.progress[-1][x * ceil(
+                            len(self.height)) / self.max_processes:(x + 1) * ceil(len(self.height)) / self.max_processes]))
+                        ...
+                    else:
+                        ...
                 ...
             elif multiPNG:
                 ...
