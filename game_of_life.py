@@ -5,7 +5,9 @@ import shutil
 import sys
 import cv2
 import time
+from math import ceil
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 
 def milli(): return int(round(time.time() * 1000))
 
@@ -46,11 +48,18 @@ class GameOfLife:
                                            dtype=np.int)]
         self.temp = np.zeros((self.height, self.width), dtype=np.int)
 
-    def processHandler(self, **kwargs):
+    def processHandler(self, iterate=False, multiPNG=False, singlePNG=False):
         with ProcessPoolExecutor(max_workers=self.max_processes) as executor:
-            if todo == 'iterate':
+            if iterate:
+                submatrices = [None for x in range(self.max_processes)]
+                if self.height > self.width:
+                    ...
+                else:
+                    ...
                 ...
-            elif todo == 'toPNG':
+            elif multiPNG:
+                ...
+            elif singlePNG:
                 ...
         return
 
@@ -78,17 +87,15 @@ class GameOfLife:
     # TODO: implement multiprocessing additionally (divide matrix in similar
     #       pieces and calculate them independently)
     # TODO: search for parts that don't change
-    def iterate(self, A):
+    def iterate(self, A, worker):
         """
         Creates next generation and appends it to progress list
 
         Args:
             A:    matrix to evaluate
         """
-        with ProcessPoolExecutor(max_workers=self.max_processes) as executor:
-            for x in range(self.height):
-                for y in range(self.width):
-                    executor.submit(self.countNeighbors(A, x, y))
+        for x in range(self.height):
+            for y in range(self.width):
         self.progress.append(self.temp.copy())
 
     # TODO: implement optimise for multiprocessing
@@ -191,14 +198,15 @@ class GameOfLife:
                 print('caught in loop')
                 break
             if i != generations:
-                self.processHandler('iterate')
+                self.processHandler(iterate=True)
                 # self.iterate(self.progress[-1])
             print(f'finished {i} in {(milli() - t)/1000}s')
         if multiPNG:
-            self.processHandler('toPNG')
+            self.processHandler(multiPNG=True)
             # self.toPNG(multiPNGscale)
         if singlePNG:
-            self.toPNG(singlePNGscale, self.progress[-1])
+            self.processHandler(singlePNG=True)
+            # self.toPNG(singlePNGscale, self.progress[-1])
         if toCMD:
             cursor.show()
 
