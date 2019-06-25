@@ -1,6 +1,7 @@
 # Conway's game of life
+build in python 3.7.3
 
-## Python 3 packages
+## packages
 
 * cursor
 * numpy
@@ -8,10 +9,11 @@
 
 ## TODO's
 
-* might need to do in batches so list with matrices doesn't get too long
-* def iterate: multiline reading and multithreading for faster evaluation
+* def iterate: implement multiprocessing
+* clean up code from broken tests and different versions
+* multithread cmd outputs
+* update documentation
 * pause on keyhit, enter menu
-* move output to seperate folder
 * menu with ability to:
   * save and load matrix
   * import matrix from png
