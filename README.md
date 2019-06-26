@@ -1,5 +1,5 @@
 # Conway's game of life
-build in python 3.7.3
+build in python 3.7.3\
 version on master branch not in working condition, select latest working_state branch instead
 
 ## packages
