@@ -25,7 +25,7 @@ built in python 3.7.3\
 
 * playing field is initiated at random with dead and alive cells
 * a dead cell gets revived when it has exactly three living neighbors
-* a living cell with two or three living neighbors stays alive, otherwise it dies
+* a living cell with two or three living neighbors stays alive, otherwise it dies\
 [Wikipedia](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life "Wikipedia: Conway's game of life")
 
 ## Example gif from PNGs
