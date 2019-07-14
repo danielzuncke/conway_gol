@@ -1,5 +1,5 @@
 # Conway's game of life
-build in python 3.7.3\
+built in python 3.7.3\
 \
 **version on master branch might not be in working condition, select latest working_state branch instead**
 
@@ -12,7 +12,7 @@ build in python 3.7.3\
 ## TODO's
 
 * def iterate: implement multiprocessing
-* clean up code from broken tests and different versions
+* clean up code from tests
 * multithread cmd outputs
 * update documentation
 * pause on keyhit, enter menu
