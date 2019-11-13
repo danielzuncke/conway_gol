@@ -9,7 +9,7 @@ built in python 3.7.3
 * opencv-python
 
 ## TODO's
-(none in working examples)
+read in branch(es)
 
 ## Example gif from PNGs
 ![](gol.gif)
